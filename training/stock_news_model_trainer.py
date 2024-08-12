@@ -1,60 +1,25 @@
 import pandas as pd
 
+# Reading the CSV files
+news_df = pd.read_csv('../datasets/stocknews/stock_news.csv', parse_dates=['Date'], encoding='utf-8')
+index_df = pd.read_csv('../datasets/indexes/total_index.csv', parse_dates=['Date'], encoding='utf-8')
 
-def main():
-    df = pd.read_csv('../datasets/stocknews/Combined_News_DJIA.csv', encoding="ISO-8859-1")
-    train = df[df['Date'] < '20150101']
-    test = df[df['Date'] > '20141231']
+# Create the 'Label' column (1 if Value > previous day's Value, else 0) and cast to int
+index_df['Label'] = (index_df['Value'].diff() > 0).astype(int)
 
-    # Removing punctuations
-    data = train.iloc[:, 2:27]
-    data.replace("[^a-zA-Z]", " ", regex=True, inplace=True)
+# Group news by date and join news entries
+news_grouped = news_df.groupby('Date').agg({'News': ' '.join}).reset_index()
 
-    # Renaming column names for ease of access
-    list1 = [i for i in range(25)]
-    new_Index = [str(i) for i in list1]
-    data.columns = new_Index
+# Merge the two DataFrames on the 'Date' column
+merged_df = pd.merge(news_grouped, index_df[['Date', 'Value' , 'Label']], on='Date', how='left')
 
-    # Convertng headlines to lower case
-    for index in new_Index:
-        data[index] = data[index].str.lower()
+# Fill missing 'Label' values by using the next available label value
+merged_df['Label'] = merged_df['Label'].fillna(method='bfill')
 
-    headlines = []
-    for row in range(0, len(data.index)):
-        headlines.append(' '.join(str(x) for x in data.iloc[row, 0:25]))
+# Ensure the 'Label' column is of integer type
+merged_df['Label'] = merged_df['Label'].astype(int)
 
-    from sklearn.feature_extraction.text import CountVectorizer
-    from sklearn.ensemble import RandomForestClassifier
+# Saving the merged DataFrame to a new CSV file
+merged_df.to_csv('../datasets/processed/stock_news_total_index_combined.csv', index=False, encoding='utf-8')
 
-    ## implement BAG OF WORDS
-    countvector = CountVectorizer(ngram_range=(2, 2))
-    traindataset = countvector.fit_transform(headlines)
-
-    # implement RandomForest Classifier
-    randomclassifier = RandomForestClassifier(n_estimators=200, criterion='entropy')
-    randomclassifier.fit(traindataset, train['Label'])
-
-    ## Predict for the Test Dataset
-    test_transform = []
-    for row in range(0, len(test.index)):
-        test_transform.append(' '.join(str(x) for x in test.iloc[row, 2:27]))
-    test_dataset = countvector.transform(test_transform)
-    predictions = randomclassifier.predict(test_dataset)
-
-    print(randomclassifier.predict(countvector.fit_transform("stock will be terrible tomorrow")))
-
-    ## Import library to check accuracy
-    from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
-
-    matrix = confusion_matrix(test['Label'], predictions)
-    print(matrix)
-    score = accuracy_score(test['Label'], predictions)
-    print(score)
-    report = classification_report(test['Label'], predictions)
-    print(report)
-
-    df.to_csv('output.csv')
-
-
-if __name__ == '__main__':
-    main()
+print("Merged data has been saved to 'stock_news_total_index_combined.csv'.")
