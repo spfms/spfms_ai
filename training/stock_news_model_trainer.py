@@ -1,64 +1,50 @@
 import re
+
+import hazm
 import joblib
+import numpy as np
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import accuracy_score
 from xgboost import XGBClassifier
-from sklearn.decomposition import PCA
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-import hazm  # Persian NLP library
 
-# Load the data
-data1 = pd.read_csv('../datasets/processed/stock_news_total_index_combined.csv')
+output_path = '../models/stock_market_prediction_xgboost_model.pkl'
 
-# Split the data into train and test sets
-train = data1[data1['Date'] < '1400/12/28']
-test = data1[data1['Date'] > '1401/01/01']
+dataset = pd.read_csv('../datasets/processed/stock_news_total_index_combined.csv')
 
-# Initialize Hazm tools for Persian NLP
-normalizer = hazm.Normalizer()
-lemmatizer = hazm.Lemmatizer()
-stop_words = hazm.stopwords_list()
+training_data = dataset[dataset['Date'] < '1400/12/28'].copy()
+testing_data = dataset[dataset['Date'] > '1401/01/01'].copy()
 
-def clean_text(text):
-    # Normalize the text
-    text = normalizer.normalize(text)
-    # Remove non-Persian characters and extra spaces
-    text = re.sub("[^\u0600-\u06FF\s]", " ", text)
-    text = re.sub("\s+", " ", text)
-    # Tokenize the text
+
+def preprocess_text(text):
+    text = re.sub(
+        r"[^\u0622\u0627\u0628\u067E\u062A-"
+        r"\u062C\u0686\u062D-"
+        r"\u0632\u0698\u0633-"
+        r"\u063A\u0641\u0642\u06A9\u06AF\u0644-"
+        r"\u0648\u06CC]+",
+        " ", text)
     tokens = hazm.word_tokenize(text)
-    # Remove stopwords and perform lemmatization
-    tokens = [lemmatizer.lemmatize(token) for token in tokens if token not in stop_words]
     return " ".join(tokens)
 
-# Apply cleaning to train and test datasets
-train['Cleaned_News'] = train['News'].apply(clean_text)
-test['Cleaned_News'] = test['News'].apply(clean_text)
 
-# Prepare headlines
-headlines = train['Cleaned_News'].tolist()
-test_transform = test['Cleaned_News'].tolist()
+training_data['Processed_News'] = training_data['News'].apply(preprocess_text)
+testing_data['Processed_News'] = testing_data['News'].apply(preprocess_text)
 
-# Vectorization using TF-IDF
-tfidfvector = TfidfVectorizer(ngram_range=(1, 2), max_features=800)
-traindataset = tfidfvector.fit_transform(headlines)
-test_dataset = tfidfvector.transform(test_transform)
+training_texts = training_data['Processed_News'].tolist()
+testing_texts = testing_data['Processed_News'].tolist()
 
-# Optionally, apply PCA to reduce dimensionality
-pca = PCA(n_components=100)
-train_pca = pca.fit_transform(traindataset.todense())
-test_pca = pca.transform(test_dataset.todense())
+count_vectorizer = CountVectorizer(ngram_range=(1, 2), max_features=800)
+X_train = count_vectorizer.fit_transform(training_texts)
+X_test = count_vectorizer.transform(testing_texts)
 
-# XGBoost without hyperparameter tuning
-xgb = XGBClassifier(random_state=1)
-xgb.fit(train_pca, train['Label'])
-predictions = xgb.predict(test_pca)
+xgb_model = XGBClassifier(random_state=1)
+xgb_model.fit(np.asarray(X_train.todense()), training_data['Label'])
 
-# Evaluate the XGBoost model
-score = accuracy_score(test['Label'], predictions)
-print(f"XGBoost Accuracy: {score}")
+predictions = xgb_model.predict(np.asarray(X_test.todense()))
+accuracy = accuracy_score(testing_data['Label'], predictions)
+print(f"XGBoost Model Accuracy: {accuracy:.4f}")
 
-# Save the XGBoost model
-joblib.dump(xgb, '../models/stock_market_prediction_xgboost_model.pkl')
+# Save both the model and the vectorizer
+joblib.dump((xgb_model, count_vectorizer), output_path)
+print(f'Model and vectorizer saved to {output_path}')
