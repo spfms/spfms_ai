@@ -1,25 +1,47 @@
+import warnings
+
+import joblib
 import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import accuracy_score
+from xgboost import XGBClassifier
 
-# Reading the CSV files
-news_df = pd.read_csv('../datasets/stocknews/stock_news.csv', parse_dates=['Date'], encoding='utf-8')
-index_df = pd.read_csv('../datasets/indexes/total_index.csv', parse_dates=['Date'], encoding='utf-8')
+warnings.filterwarnings('ignore')
 
-# Create the 'Label' column (1 if Value > previous day's Value, else 0) and cast to int
-index_df['Label'] = (index_df['Value'].diff() > 0).astype(int)
+# Load the data
+data1 = pd.read_csv('../datasets/processed/stock_news_total_index_combined.csv')
 
-# Group news by date and join news entries
-news_grouped = news_df.groupby('Date').agg({'News': ' '.join}).reset_index()
+# Split the data into train and test sets
+train = data1[data1['Date'] < '1400/12/28']
+test = data1[data1['Date'] > '1401/01/01']
 
-# Merge the two DataFrames on the 'Date' column
-merged_df = pd.merge(news_grouped, index_df[['Date', 'Value' , 'Label']], on='Date', how='left')
+# Data cleaning
+all_data = [train, test]
+for df in all_data:
+    df.replace("[^\u0600-\u06FF]", " ", regex=True, inplace=True)
 
-# Fill missing 'Label' values by using the next available label value
-merged_df['Label'] = merged_df['Label'].fillna(method='bfill')
+# Prepare headlines
+headlines = []
+for row in range(0, len(train.index)):
+    headlines.append(train.iloc[row, 1])
 
-# Ensure the 'Label' column is of integer type
-merged_df['Label'] = merged_df['Label'].astype(int)
+test_transform = []
+for row in range(0, len(test.index)):
+    test_transform.append(test.iloc[row, 1])
 
-# Saving the merged DataFrame to a new CSV file
-merged_df.to_csv('../datasets/processed/stock_news_total_index_combined.csv', index=False, encoding='utf-8')
+# Vectorization
+countvector = CountVectorizer(ngram_range=(1, 1), max_features=800)
+traindataset = countvector.fit_transform(headlines)
+test_dataset = countvector.transform(test_transform)
 
-print("Merged data has been saved to 'stock_news_total_index_combined.csv'.")
+# XGBoost without hyperparameter tuning
+xgb = XGBClassifier(random_state=1)
+xgb.fit(pd.DataFrame(traindataset.todense(), columns=countvector.get_feature_names_out()), train['Label'])
+predictions = xgb.predict(pd.DataFrame(test_dataset.todense(), columns=countvector.get_feature_names_out()))
+
+# Evaluate the XGBoost model
+score = accuracy_score(test['Label'], predictions)
+print(f"XGBoost Accuracy: {score}")
+
+# Save the XGBoost model
+joblib.dump(xgb, '../models/stock_market_prediction_xgboost_model.pkl')
