@@ -1,13 +1,12 @@
-import pandas as pd
-import pickle
-from utils import scrape_today_news  # Assuming the scrape_today_news function is in utils.py
-from sklearn.feature_extraction.text import TfidfVectorizer
+import joblib
+
+from crawling.today_stock_news_crawl import scrape_today_news
 
 
 def load_model(model_path):
-    """Load the trained model and TF-IDF vectorizer."""
+    """Load the trained model and CountVectorizer."""
     with open(model_path, 'rb') as f:
-        model, vectorizer = pickle.load(f)
+        model, vectorizer = joblib.load(f)
     return model, vectorizer
 
 
@@ -37,7 +36,5 @@ def main(model_path):
 
 
 if __name__ == "__main__":
-    model_path = ('../models/stock_market_prediction_xgboost_model.pkl'
-                  ''
-                  '')
+    model_path = '../models/stock_market_prediction_xgboost_model.pkl'
     main(model_path)
