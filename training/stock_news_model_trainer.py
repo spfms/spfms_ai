@@ -2,7 +2,6 @@ import re
 
 import hazm
 import joblib
-import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import accuracy_score
@@ -39,9 +38,9 @@ X_train = count_vectorizer.fit_transform(training_texts)
 X_test = count_vectorizer.transform(testing_texts)
 
 xgb_model = XGBClassifier(random_state=1)
-xgb_model.fit(np.asarray(X_train.todense()), training_data['Label'])
+xgb_model.fit(X_train.todense(), training_data['Label'])
 
-predictions = xgb_model.predict(np.asarray(X_test.todense()))
+predictions = xgb_model.predict(X_test.todense())
 accuracy = accuracy_score(testing_data['Label'], predictions)
 print(f"XGBoost Model Accuracy: {accuracy:.4f}")
 
