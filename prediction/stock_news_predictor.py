@@ -1,3 +1,5 @@
+import json
+
 import joblib
 
 from crawling.stocknews.stock_news_crawl import scrape_recent_stock_news
@@ -19,7 +21,7 @@ def predict_today_news(model, vectorizer, news_list):
     return prediction[0], probability[0]
 
 
-def main(model_path):
+def main(model_path, output_json_path):
     today_news = [(text, source) for _, text, source in scrape_recent_stock_news()]
 
     if not today_news:
@@ -35,27 +37,22 @@ def main(model_path):
         else:
             news_by_source[source] += " " + text
 
-    predictions = {}
+    predictions = []
     for source, news in news_by_source.items():
         label, prob = predict_today_news(model, vectorizer, [news])
-        predictions[source] = {
-            "news": news,
-            "label": label,
-            "probability": prob[label]
-        }
+        predictions.append({
+            "trend": 'bullish' if label == 1 else 'bearish',
+            "confidence": str(prob[label]),
+            "source": source
+        })
 
-    for source, result in predictions.items():
-        print(f"Source: {source}")
-        print(f"  News: {result['news'][:100]}...")
-        print(f"  Predicted Label: {result['label']}")
-        print(f"  Predicted Probability: {result['probability']}")
-        print()
+    with open(output_json_path, 'w', encoding='utf-8') as outfile:
+        json.dump({"forecasts": predictions}, outfile, ensure_ascii=False, indent=4)
 
-# Example usage
-# main('path_to_your_model')
-
+    print(f"Predictions saved to {output_json_path}")
 
 
 if __name__ == "__main__":
     model_path = '../models/stock_market_prediction_xgboost_model.pkl'
-    main(model_path)
+    output_json_path = '../datasets/predictions/stock_market_predictions.json'
+    main(model_path, output_json_path)
