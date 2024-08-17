@@ -32,7 +32,7 @@ def main(model_path):
     label, probability = predict_today_news(model, vectorizer, today_news)
 
     print(f"Predicted Label: {label}")
-    print(f"Predicted Probability: {probability}")
+    print(f"Predicted Probability: {probability[label]}")
 
 
 if __name__ == "__main__":
