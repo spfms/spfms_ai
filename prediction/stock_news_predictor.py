@@ -1,6 +1,6 @@
 import joblib
 
-from crawling.stocknews.today_stock_news_crawl import scrape_today_news
+from crawling.stocknews.stock_news_crawl import scrape_stock_news
 
 
 def load_model(model_path):
@@ -14,14 +14,14 @@ def predict_today_news(model, vectorizer, news_list):
     """Predict the label and probability for today's news."""
     news_combined = ' '.join(news_list)
     news_vectorized = vectorizer.transform([news_combined])
-    prediction = model.predict(news_vectorized)
-    probability = model.predict_proba(news_vectorized)
+    prediction = model.predict(news_vectorized.todense())
+    probability = model.predict_proba(news_vectorized.todense())
     return prediction[0], probability[0]
 
 
 def main(model_path):
     """Main function to get today's news and make predictions."""
-    today_news = scrape_today_news()
+    today_news = [news_text for date, news_text in scrape_stock_news()]
 
     if not today_news:
         print("No news found for today.")

@@ -28,7 +28,7 @@ class NewsCrawler(ABC):
                 if self.is_within_date_range(date, start_date, end_date)
             ]
 
-            if not filtered_news:
+            if not filtered_news and all_news:
                 break
 
             all_news.extend(filtered_news)

@@ -2,13 +2,12 @@ import requests
 from bs4 import BeautifulSoup
 from persiantools.jdatetime import JalaliDateTime, JalaliDate
 
-from news_crawler import NewsCrawler
+from crawling.stocknews.news_crawler import NewsCrawler
 
 
 class TasnimNewsCrawler(NewsCrawler):
     def __init__(self):
-        base_url = ("https://www.tasnimnews.com/fa/service/84/"
-                    "%D8%A8%D8%A7%D8%B2%D8%A7%D8%B1-%D8%B3%D9%87%D8%A7%D9%85-%D8%B3%D9%88%D8%B1%D8%B3?page=")
+        base_url = "https://www.tasnimnews.com/fa/service/84/بازار-سهام-سورس?page="
         super().__init__(base_url)
 
     @staticmethod
