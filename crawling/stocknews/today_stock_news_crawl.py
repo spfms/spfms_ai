@@ -1,31 +1,20 @@
-import time
+from persiantools.jdatetime import JalaliDateTime
 
-from crawling.stocknews.stock_news_utils import scrape_page
-
-base_url = ("https://www.tasnimnews.com/fa/service/84/%D8%A8%D8%A7%D8%B2%D8%A7%D8%B1-%D8%B3%D9%87%D8%A7%D9%85-%D8%B3"
-            "%D9%88%D8%B1%D8%B3?page=")
+from tasnim_news_crawler import TasnimNewsCrawler
 
 
-def scrape_today_news():
-    today_news = []
-    page = 1
-    while True:
-        print(f"Scraping page {page}")
-        news_items, continue_scraping = scrape_page(base_url, page, is_today_check=True)
+def main():
+    start_date = JalaliDateTime.strptime("1403/05/23", '%Y/%m/%d').jalali_date()
+    # start_date = JalaliDateTime.today().jalali_date()
+    end_date = JalaliDateTime.today().jalali_date()
 
-        today_news.extend([title for _, title in news_items])
+    news_crawlers = [TasnimNewsCrawler()]
+    crawled_news = [news for crawler in news_crawlers for news in crawler.scrape_all_pages(start_date, end_date)]
 
-        if not continue_scraping:
-            break
-
-        page += 1
-        time.sleep(0.001)
-
-    return today_news
+    print("Crawled News:")
+    for date, title in crawled_news:
+        print(f"{date}: {title}")
 
 
 if __name__ == "__main__":
-    today_news = scrape_today_news()
-    print("Today's news:")
-    for news in today_news:
-        print(news)
+    main()
