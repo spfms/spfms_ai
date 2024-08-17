@@ -1,6 +1,6 @@
 import time
 
-from crawling.stock_news_utils import scrape_page
+from crawling.stocknews.stock_news_utils import scrape_page
 
 base_url = ("https://www.tasnimnews.com/fa/service/84/%D8%A8%D8%A7%D8%B2%D8%A7%D8%B1-%D8%B3%D9%87%D8%A7%D9%85-%D8%B3"
             "%D9%88%D8%B1%D8%B3?page=")

@@ -6,7 +6,7 @@ from stock_news_utils import scrape_page
 base_url = ("https://www.tasnimnews.com/fa/service/84/%D8%A8%D8%A7%D8%B2%D8%A7%D8%B1-%D8%B3%D9%87%D8%A7%D9%85-%D8%B3"
             "%D9%88%D8%B1%D8%B3?page=")
 
-output_file = '../datasets/stocknews/stock_news.csv'
+output_file = '../../datasets/stocknews/stock_news.csv'
 
 
 def scrape_all_pages(start_page, end_page):

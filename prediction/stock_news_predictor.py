@@ -1,6 +1,6 @@
 import joblib
 
-from crawling.today_stock_news_crawl import scrape_today_news
+from crawling.stocknews.today_stock_news_crawl import scrape_today_news
 
 
 def load_model(model_path):
