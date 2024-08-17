@@ -42,7 +42,7 @@ xgb_model.fit(X_train.todense(), training_data['Label'])
 
 predictions = xgb_model.predict(X_test.todense())
 accuracy = accuracy_score(testing_data['Label'], predictions)
-print(f"XGBoost Model Accuracy: {accuracy:.4f}")
+print(f"XGBoost Model Accuracy: {accuracy:.2f}")
 
 # Save both the model and the vectorizer
 joblib.dump((xgb_model, count_vectorizer), output_path)
