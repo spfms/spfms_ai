@@ -1,6 +1,6 @@
 import joblib
 
-from crawling.stocknews.stock_news_crawl import scrape_stock_news
+from crawling.stocknews.stock_news_crawl import scrape_recent_stock_news
 
 
 def load_model(model_path):
@@ -20,8 +20,7 @@ def predict_today_news(model, vectorizer, news_list):
 
 
 def main(model_path):
-    """Main function to get today's news and make predictions."""
-    today_news = [news_text for date, news_text in scrape_stock_news()]
+    today_news = [(text, source) for _, text, source in scrape_recent_stock_news()]
 
     if not today_news:
         print("No news found for today.")
@@ -29,10 +28,32 @@ def main(model_path):
 
     model, vectorizer = load_model(model_path)
 
-    label, probability = predict_today_news(model, vectorizer, today_news)
+    news_by_source = {}
+    for text, source in today_news:
+        if source not in news_by_source:
+            news_by_source[source] = text
+        else:
+            news_by_source[source] += " " + text
 
-    print(f"Predicted Label: {label}")
-    print(f"Predicted Probability: {probability[label]}")
+    predictions = {}
+    for source, news in news_by_source.items():
+        label, prob = predict_today_news(model, vectorizer, [news])
+        predictions[source] = {
+            "news": news,
+            "label": label,
+            "probability": prob[label]
+        }
+
+    for source, result in predictions.items():
+        print(f"Source: {source}")
+        print(f"  News: {result['news'][:100]}...")
+        print(f"  Predicted Label: {result['label']}")
+        print(f"  Predicted Probability: {result['probability']}")
+        print()
+
+# Example usage
+# main('path_to_your_model')
+
 
 
 if __name__ == "__main__":

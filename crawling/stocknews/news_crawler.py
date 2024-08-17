@@ -24,7 +24,7 @@ class NewsCrawler(ABC):
             news_items = self.scrape_page(page)
 
             filtered_news = [
-                (date, title) for date, title in news_items
+                (date, news_text, source) for date, news_text, source in news_items
                 if self.is_within_date_range(date, start_date, end_date)
             ]
 

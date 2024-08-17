@@ -8,6 +8,7 @@ from crawling.stocknews.news_crawler import NewsCrawler
 class TasnimNewsCrawler(NewsCrawler):
     def __init__(self):
         base_url = "https://www.tasnimnews.com/fa/service/84/بازار-سهام-سورس?page="
+        self.source = 'تسنیم'
         super().__init__(base_url)
 
     @staticmethod
@@ -48,6 +49,6 @@ class TasnimNewsCrawler(NewsCrawler):
                 title_tag = article.find('h2', class_='title')
                 title = title_tag.text.strip() if title_tag else 'N/A'
 
-                news_items.append((date, title))
+                news_items.append((date, title, self.source))
 
         return news_items
