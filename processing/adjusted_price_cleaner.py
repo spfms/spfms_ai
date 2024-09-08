@@ -8,8 +8,6 @@ output_path = '../datasets/stockprices/Cleaned_Adjusted_Price_report.csv'
 
 df = pd.read_csv(file_path)
 
-df['Ticker'] = df['Ticker'].str.replace('1', '', regex=False)
-
 df['Ticker'] = df['Ticker'].apply(clean_sentence)
 
 
