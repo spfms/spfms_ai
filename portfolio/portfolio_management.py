@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from scipy.linalg import cholesky
 from scipy.optimize import minimize
 
 
@@ -24,34 +23,25 @@ def calculate_returns(tickers_df, index_df, tickers_to_include):
 
 def calculate_stats(ticker_returns):
     mean_returns = ticker_returns.mean()
-    variances = ticker_returns.var()
     cov_matrix = ticker_returns.cov()
-
-    try:
-        cholesky(cov_matrix)
-    except np.linalg.LinAlgError:
-        cov_matrix = make_positive_definite(cov_matrix)
-
-    return mean_returns, variances, cov_matrix
+    return mean_returns, cov_matrix
 
 
-def make_positive_definite(cov_matrix):
-    eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
-    eigenvalues = np.where(eigenvalues < 0, 0, eigenvalues)
-    return np.dot(eigenvectors, np.dot(np.diag(eigenvalues), eigenvectors.T))
-
-
-def optimize_portfolio(ticker_returns, cov_matrix, initial_weights):
+def optimize_portfolio(ticker_returns, mean_returns, cov_matrix, initial_weights, risk_free_rate=0):
     tickers = ticker_returns.columns
-    initial_weights_array = np.array([initial_weights[ticker] for ticker in tickers])
+    num_assets = len(tickers)
 
-    def portfolio_variance(weights, cov_matrix):
-        return np.dot(weights.T, np.dot(cov_matrix, weights))
+    def sharpe_ratio(weights):
+        portfolio_return = np.dot(weights, mean_returns)
+        portfolio_var = np.dot(weights.T, np.dot(cov_matrix, weights))
+        portfolio_stddev = np.sqrt(portfolio_var)
+        return -(portfolio_return - risk_free_rate) / portfolio_stddev
 
+    initial_weights_array = np.array([initial_weights.get(ticker, 0) for ticker in tickers])
     constraints = {'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}
-    bounds = tuple((0, 1) for _ in range(len(tickers)))
-    result = minimize(portfolio_variance, initial_weights_array, args=(cov_matrix,), method='SLSQP', bounds=bounds,
-                      constraints=constraints)
+    bounds = tuple((0, 1) for _ in range(num_assets))
+
+    result = minimize(sharpe_ratio, initial_weights_array, method='SLSQP', bounds=bounds, constraints=constraints)
 
     if not result.success:
         raise ValueError("Optimization failed!")
@@ -59,11 +49,10 @@ def optimize_portfolio(ticker_returns, cov_matrix, initial_weights):
     return result.x
 
 
-def calculate_portfolio_performance(weights, ticker_returns, mean_returns, cov_matrix):
+def calculate_portfolio_performance(weights, ticker_returns, mean_returns, cov_matrix, risk_free_rate=0):
     portfolio_return = np.dot(weights, mean_returns)
     portfolio_var = np.dot(weights.T, np.dot(cov_matrix, weights))
     portfolio_stddev = np.sqrt(portfolio_var)
-    risk_free_rate = 0
     sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_stddev
     portfolio_returns = ticker_returns.dot(weights)
     portfolio_cum_returns = (1 + portfolio_returns / 100).cumprod()
@@ -93,16 +82,15 @@ def plot_risk_return_comparison(ticker_returns, mean_returns):
     fig.show()
 
 
-def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, initial_weights, optimal_weights):
-    # Calculate performance for initial weights
+def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, initial_weights, optimal_weights, risk_free_rate=0):
+    initial_weights_array = np.array([initial_weights.get(ticker, 0) for ticker in ticker_returns.columns])
+
     initial_return, initial_stddev, initial_sharpe, _ = calculate_portfolio_performance(
-        np.array(list(initial_weights.values())), ticker_returns, mean_returns, cov_matrix)
+        initial_weights_array, ticker_returns, mean_returns, cov_matrix, risk_free_rate)
 
-    # Calculate performance for optimized weights
     optimized_return, optimized_stddev, optimized_sharpe, _ = calculate_portfolio_performance(
-        optimal_weights, ticker_returns, mean_returns, cov_matrix)
+        optimal_weights, ticker_returns, mean_returns, cov_matrix, risk_free_rate)
 
-    # Create a comparison table
     comparison_data = {
         'Metric': ['Expected Return (%)', 'Risk (Std Dev) (%)', 'Sharpe Ratio'],
         'Initial Portfolio': [f'{initial_return:.2f}', f'{initial_stddev:.2f}', f'{initial_sharpe:.2f}'],
@@ -125,16 +113,16 @@ def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matri
 tickers_df, index_df = load_data()
 
 initial_weights_dict = {
-    'کماسه1': 0.7,
+    'کماسه1': 0.3,
     'شتران1': 0.1,
-    'ولغدر1': 0.2
+    'ولغدر1': 0.6
 }
 
 tickers_to_include = list(initial_weights_dict.keys())
 
 ticker_returns, index_returns = calculate_returns(tickers_df, index_df, tickers_to_include)
-mean_returns, variances, cov_matrix = calculate_stats(ticker_returns)
-optimal_weights = optimize_portfolio(ticker_returns, cov_matrix, initial_weights_dict)
+mean_returns, cov_matrix = calculate_stats(ticker_returns)
+optimal_weights = optimize_portfolio(ticker_returns, mean_returns, cov_matrix, initial_weights_dict, risk_free_rate=0)
 portfolio_return, portfolio_stddev, sharpe_ratio, portfolio_cum_returns = calculate_portfolio_performance(
     optimal_weights, ticker_returns, mean_returns, cov_matrix)
 
