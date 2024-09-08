@@ -189,6 +189,9 @@ def manage_portfolio(invested_amounts_dict):
     initial_profit_or_loss = calculate_profit_and_loss(initial_return, invested_amounts_dict)
     optimized_profit_or_loss = calculate_profit_and_loss(optimized_return, invested_amounts_dict)
 
+    optimized_portfolio = {ticker: weight * sum(invested_amounts_dict.values())
+                           for ticker, weight in zip(tickers_to_include, optimal_weights)}
+
     comparison_data = {
         'initial_return': initial_return,
         'optimized_return': optimized_return,
@@ -215,5 +218,6 @@ def manage_portfolio(invested_amounts_dict):
     return {
         'comparison_data': comparison_data,
         'cum_returns_data': cum_returns_data,
-        'risk_vs_return_data': risk_vs_return_data
+        'risk_vs_return_data': risk_vs_return_data,
+        'optimized_portfolio': optimized_portfolio
     }
