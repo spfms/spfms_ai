@@ -97,9 +97,6 @@ def manage_portfolio(invested_amounts_dict):
 
     index_cum_returns = (1 + index_returns / 100).cumprod()
 
-    initial_profit_or_loss = calculate_profit_and_loss(initial_return, invested_amounts_dict)
-    optimized_profit_or_loss = calculate_profit_and_loss(optimized_return, invested_amounts_dict)
-
     optimized_portfolio = {ticker: weight * sum(invested_amounts_dict.values())
                            for ticker, weight in zip(tickers_to_include, optimal_weights)}
 
@@ -110,8 +107,6 @@ def manage_portfolio(invested_amounts_dict):
         'optimized_stddev': optimized_stddev,
         'initial_sharpe': initial_sharpe,
         'optimized_sharpe': optimized_sharpe,
-        'initial_profit_or_loss': initial_profit_or_loss,
-        'optimized_profit_or_loss': optimized_profit_or_loss
     }
 
     cum_returns_data = {
