@@ -1,59 +1,69 @@
 {
     "forecasts": [
         {
-            "trend": "bullish",
-            "confidence": "0.84938866",
-            "source": "اکوایران"
-        },
-        {
-            "trend": "bullish",
-            "confidence": "0.6567653",
-            "source": "اکونگار"
-        },
-        {
-            "trend": "bullish",
-            "confidence": "0.9505038",
+            "trend": "bearish",
+            "confidence": "0.9908695",
             "source": "همشهری آنلاین"
         },
         {
-            "trend": "bearish",
-            "confidence": "0.5243886",
-            "source": "اقتصاد نیوز"
-        },
-        {
             "trend": "bullish",
-            "confidence": "0.87766975",
-            "source": "خبرگزاری تسنیم"
-        },
-        {
-            "trend": "bullish",
-            "confidence": "0.999561",
-            "source": "اقتصاد ۱۰۰"
-        },
-        {
-            "trend": "bullish",
-            "confidence": "0.8499777",
-            "source": "مشرق نیوز"
-        },
-        {
-            "trend": "bullish",
-            "confidence": "0.726561",
-            "source": "خبرآنلاین"
-        },
-        {
-            "trend": "bullish",
-            "confidence": "0.6006277",
-            "source": "اقتصاد آنلاین"
-        },
-        {
-            "trend": "bullish",
-            "confidence": "0.5338098",
+            "confidence": "0.8817253",
             "source": "دنیای اقتصاد"
         },
         {
             "trend": "bearish",
-            "confidence": "0.7797046",
+            "confidence": "0.6922691",
+            "source": "اقتصاد نیوز"
+        },
+        {
+            "trend": "bullish",
+            "confidence": "0.8759302",
+            "source": "اقتصاد ۱۰۰"
+        },
+        {
+            "trend": "bearish",
+            "confidence": "0.66240203",
             "source": "اطلاعات"
+        },
+        {
+            "trend": "bearish",
+            "confidence": "0.784057",
+            "source": "خبرآنلاین"
+        },
+        {
+            "trend": "bullish",
+            "confidence": "0.5091678",
+            "source": "اکوایران"
+        },
+        {
+            "trend": "bearish",
+            "confidence": "0.55720115",
+            "source": "اقتصاد آنلاین"
+        },
+        {
+            "trend": "bearish",
+            "confidence": "0.9920907",
+            "source": "مشرق نیوز"
+        },
+        {
+            "trend": "bearish",
+            "confidence": "0.913195",
+            "source": "خبرگزاری تسنیم"
+        },
+        {
+            "trend": "bullish",
+            "confidence": "0.80642027",
+            "source": "نامه نیوز"
+        },
+        {
+            "trend": "bullish",
+            "confidence": "0.56254417",
+            "source": "افکار نیوز"
+        },
+        {
+            "trend": "bearish",
+            "confidence": "0.5078459",
+            "source": "تازه نیوز"
         }
     ]
 }
