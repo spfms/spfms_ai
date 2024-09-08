@@ -10,3 +10,6 @@ plotly~=5.23.0
 xgboost~=2.1.1
 catboost~=1.2.5
 hazm~=0.10.0
+DateTime~=5.5
+joblib~=1.4.2
+jdatetime~=5.0.0
