@@ -13,3 +13,4 @@ hazm~=0.10.0
 DateTime~=5.5
 joblib~=1.4.2
 jdatetime~=5.0.0
+scipy~=1.13.1

@@ -1,7 +1,5 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotly.express as px
 from scipy.optimize import minimize
 
 
@@ -69,64 +67,6 @@ def calculate_profit_and_loss(portfolio_return, invested_amounts):
     total_investment = sum(invested_amounts.values())
     profit_or_loss = total_investment * (portfolio_return / 100)
     return profit_or_loss
-
-
-def plot_cumulative_returns(portfolio_cum_returns, index_returns):
-    index_cum_returns = (1 + index_returns / 100).cumprod()
-    plt.figure(figsize=(10, 6))
-    plt.plot(portfolio_cum_returns.index, portfolio_cum_returns, label='Portfolio Cumulative Return', color='blue')
-    plt.plot(index_cum_returns.index, index_cum_returns, label='Index Cumulative Return', color='red')
-    plt.title('Cumulative Returns: Portfolio vs Index')
-    plt.xlabel('Date')
-    plt.ylabel('Cumulative Return (%)')
-    plt.xticks(rotation=45)
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
-
-def plot_risk_return_comparison(ticker_returns, mean_returns):
-    risk = ticker_returns.std()
-    returns = mean_returns
-    fig_data = pd.DataFrame({'Ticker': ticker_returns.columns, 'Return': returns.values, 'Risk': risk.values})
-    fig = px.scatter(fig_data, x='Risk', y='Return', text='Ticker', title='Risk vs Return Comparison (Tickers)',
-                     labels={'Risk': 'Annualized Risk (%)', 'Return': 'Annualized Return (%)'}, template="plotly_dark")
-    fig.show()
-
-
-def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, invested_amounts, optimal_weights,
-                                         risk_free_rate=0):
-    initial_weights = calculate_weights_from_invested(invested_amounts)
-    initial_weights_array = np.array([initial_weights.get(ticker, 0) for ticker in ticker_returns.columns])
-
-    initial_return, initial_stddev, initial_sharpe, _ = calculate_portfolio_performance(
-        initial_weights_array, ticker_returns, mean_returns, cov_matrix, risk_free_rate)
-
-    optimized_return, optimized_stddev, optimized_sharpe, _ = calculate_portfolio_performance(
-        optimal_weights, ticker_returns, mean_returns, cov_matrix, risk_free_rate)
-
-    initial_profit_or_loss = calculate_profit_and_loss(initial_return, invested_amounts)
-    optimized_profit_or_loss = calculate_profit_and_loss(optimized_return, invested_amounts)
-
-    comparison_data = {
-        'Metric': ['Expected Return (%)', 'Risk (Std Dev) (%)', 'Sharpe Ratio', 'Profit/Loss'],
-        'Initial Portfolio': [f'{initial_return:.2f}', f'{initial_stddev:.2f}', f'{initial_sharpe:.2f}',
-                              f'{initial_profit_or_loss:.2f}'],
-        'Optimized Portfolio': [f'{optimized_return:.2f}', f'{optimized_stddev:.2f}', f'{optimized_sharpe:.2f}',
-                                f'{optimized_profit_or_loss:.2f}']
-    }
-
-    comparison_df = pd.DataFrame(comparison_data)
-
-    fig, ax = plt.subplots(figsize=(8, 2))
-    ax.axis('tight')
-    ax.axis('off')
-    table = ax.table(cellText=comparison_df.values, colLabels=comparison_df.columns, cellLoc='center', loc='center')
-    table.auto_set_font_size(False)
-    table.set_fontsize(12)
-    table.scale(1.5, 1.5)
-    plt.title("Comparison of Initial and Optimized Portfolio Performance")
-    plt.show()
 
 
 def get_all_tickers():
