@@ -4,14 +4,12 @@ import pandas as pd
 import plotly.express as px
 from scipy.optimize import minimize
 
-
 def load_data():
     tickers_df = pd.read_csv('../datasets/stockprices/Cleaned_Adjusted_Price_report.csv')
     index_df = pd.read_csv('../datasets/indexes/total_index.csv')
     tickers_df.set_index('Date', inplace=True)
     index_df.set_index('Date', inplace=True)
     return tickers_df, index_df
-
 
 def calculate_returns(tickers_df, index_df, tickers_to_include):
     ticker_prices = tickers_df.pivot(columns='Ticker', values='Adj Close')
@@ -20,12 +18,15 @@ def calculate_returns(tickers_df, index_df, tickers_to_include):
     index_returns = index_df['Value'].pct_change() * 100
     return ticker_returns.dropna(), index_returns.dropna()
 
-
 def calculate_stats(ticker_returns):
     mean_returns = ticker_returns.mean()
     cov_matrix = ticker_returns.cov()
     return mean_returns, cov_matrix
 
+def calculate_weights_from_invested(invested_amounts):
+    total_investment = sum(invested_amounts.values())
+    weights = {ticker: invested / total_investment for ticker, invested in invested_amounts.items()}
+    return weights
 
 def optimize_portfolio(ticker_returns, mean_returns, cov_matrix, initial_weights, risk_free_rate=0):
     tickers = ticker_returns.columns
@@ -48,7 +49,6 @@ def optimize_portfolio(ticker_returns, mean_returns, cov_matrix, initial_weights
 
     return result.x
 
-
 def calculate_portfolio_performance(weights, ticker_returns, mean_returns, cov_matrix, risk_free_rate=0):
     portfolio_return = np.dot(weights, mean_returns)
     portfolio_var = np.dot(weights.T, np.dot(cov_matrix, weights))
@@ -58,6 +58,10 @@ def calculate_portfolio_performance(weights, ticker_returns, mean_returns, cov_m
     portfolio_cum_returns = (1 + portfolio_returns / 100).cumprod()
     return portfolio_return, portfolio_stddev, sharpe_ratio, portfolio_cum_returns
 
+def calculate_profit_and_loss(portfolio_return, invested_amounts):
+    total_investment = sum(invested_amounts.values())
+    profit_or_loss = total_investment * (portfolio_return / 100)
+    return profit_or_loss
 
 def plot_cumulative_returns(portfolio_cum_returns, index_returns):
     index_cum_returns = (1 + index_returns / 100).cumprod()
@@ -72,7 +76,6 @@ def plot_cumulative_returns(portfolio_cum_returns, index_returns):
     plt.grid(True)
     plt.show()
 
-
 def plot_risk_return_comparison(ticker_returns, mean_returns):
     risk = ticker_returns.std()
     returns = mean_returns
@@ -81,8 +84,8 @@ def plot_risk_return_comparison(ticker_returns, mean_returns):
                      labels={'Risk': 'Annualized Risk (%)', 'Return': 'Annualized Return (%)'}, template="plotly_dark")
     fig.show()
 
-
-def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, initial_weights, optimal_weights, risk_free_rate=0):
+def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, invested_amounts, optimal_weights, risk_free_rate=0):
+    initial_weights = calculate_weights_from_invested(invested_amounts)
     initial_weights_array = np.array([initial_weights.get(ticker, 0) for ticker in ticker_returns.columns])
 
     initial_return, initial_stddev, initial_sharpe, _ = calculate_portfolio_performance(
@@ -91,10 +94,13 @@ def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matri
     optimized_return, optimized_stddev, optimized_sharpe, _ = calculate_portfolio_performance(
         optimal_weights, ticker_returns, mean_returns, cov_matrix, risk_free_rate)
 
+    initial_profit_or_loss = calculate_profit_and_loss(initial_return, invested_amounts)
+    optimized_profit_or_loss = calculate_profit_and_loss(optimized_return, invested_amounts)
+
     comparison_data = {
-        'Metric': ['Expected Return (%)', 'Risk (Std Dev) (%)', 'Sharpe Ratio'],
-        'Initial Portfolio': [f'{initial_return:.2f}', f'{initial_stddev:.2f}', f'{initial_sharpe:.2f}'],
-        'Optimized Portfolio': [f'{optimized_return:.2f}', f'{optimized_stddev:.2f}', f'{optimized_sharpe:.2f}']
+        'Metric': ['Expected Return (%)', 'Risk (Std Dev) (%)', 'Sharpe Ratio', 'Profit/Loss'],
+        'Initial Portfolio': [f'{initial_return:.2f}', f'{initial_stddev:.2f}', f'{initial_sharpe:.2f}', f'{initial_profit_or_loss:.2f}'],
+        'Optimized Portfolio': [f'{optimized_return:.2f}', f'{optimized_stddev:.2f}', f'{optimized_sharpe:.2f}', f'{optimized_profit_or_loss:.2f}']
     }
 
     comparison_df = pd.DataFrame(comparison_data)
@@ -109,27 +115,28 @@ def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matri
     plt.title("Comparison of Initial and Optimized Portfolio Performance")
     plt.show()
 
-
 tickers_df, index_df = load_data()
 
-initial_weights_dict = {
-    'کماسه1': 0.3,
-    'شتران1': 0.1,
-    'ولغدر1': 0.6
+invested_amounts_dict = {
+    'کماسه1': 30000,
+    'شتران1': 10000,
+    'ولغدر1': 60000
 }
 
-tickers_to_include = list(initial_weights_dict.keys())
+tickers_to_include = list(invested_amounts_dict.keys())
 
 ticker_returns, index_returns = calculate_returns(tickers_df, index_df, tickers_to_include)
 mean_returns, cov_matrix = calculate_stats(ticker_returns)
+initial_weights_dict = calculate_weights_from_invested(invested_amounts_dict)
 optimal_weights = optimize_portfolio(ticker_returns, mean_returns, cov_matrix, initial_weights_dict, risk_free_rate=0)
+
 portfolio_return, portfolio_stddev, sharpe_ratio, portfolio_cum_returns = calculate_portfolio_performance(
     optimal_weights, ticker_returns, mean_returns, cov_matrix)
 
 plot_cumulative_returns(portfolio_cum_returns, index_returns)
 plot_risk_return_comparison(ticker_returns, mean_returns)
 
-compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, initial_weights_dict, optimal_weights)
+compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, invested_amounts_dict, optimal_weights)
 
 print("Optimal Weights:", optimal_weights)
 print(f"Expected Portfolio Return: {portfolio_return:.2f}%")
