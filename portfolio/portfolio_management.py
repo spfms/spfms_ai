@@ -6,8 +6,8 @@ from scipy.optimize import minimize
 
 
 def load_data():
-    tickers_df = pd.read_csv('../datasets/stockprices/Cleaned_Adjusted_Price_report.csv')
-    index_df = pd.read_csv('../datasets/indexes/total_index.csv')
+    tickers_df = pd.read_csv('datasets/stockprices/Cleaned_Adjusted_Price_report.csv')
+    index_df = pd.read_csv('datasets/indexes/total_index.csv')
     tickers_df.set_index('Date', inplace=True)
     index_df.set_index('Date', inplace=True)
     return tickers_df, index_df
@@ -129,14 +129,13 @@ def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matri
     plt.show()
 
 
-tickers_df, index_df = load_data()
+# tickers_df, index_df = load_data()
 
-invested_amounts_dict = {
-    'کماسه1': 30000,
-    'شتران1': 10000,
-    'ولغدر1': 60000
-}
-
+# invested_amounts_dict = {
+#     'کماسه1': 30000,
+#     'شتران1': 10000,
+#     'ولغدر1': 60000
+# }
 
 # tickers_to_include = list(invested_amounts_dict.keys())
 #
@@ -218,6 +217,3 @@ def manage_portfolio(invested_amounts_dict):
         'cum_returns_data': cum_returns_data,
         'risk_vs_return_data': risk_vs_return_data
     }
-
-
-print(manage_portfolio(invested_amounts_dict))

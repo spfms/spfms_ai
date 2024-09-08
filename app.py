@@ -2,10 +2,13 @@ import json
 import os
 
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 from portfolio.portfolio_management import manage_portfolio, get_all_tickers
 
 app = Flask(__name__)
+
+CORS(app)
 
 
 @app.route('/')
