@@ -129,35 +129,6 @@ def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matri
     plt.show()
 
 
-# tickers_df, index_df = load_data()
-
-# invested_amounts_dict = {
-#     'کماسه1': 30000,
-#     'شتران1': 10000,
-#     'ولغدر1': 60000
-# }
-
-# tickers_to_include = list(invested_amounts_dict.keys())
-#
-# ticker_returns, index_returns = calculate_returns(tickers_df, index_df, tickers_to_include)
-# mean_returns, cov_matrix = calculate_stats(ticker_returns)
-# initial_weights_dict = calculate_weights_from_invested(invested_amounts_dict)
-# optimal_weights = optimize_portfolio(ticker_returns, mean_returns, cov_matrix, initial_weights_dict, risk_free_rate=0)
-#
-# portfolio_return, portfolio_stddev, sharpe_ratio, portfolio_cum_returns = calculate_portfolio_performance(
-#     optimal_weights, ticker_returns, mean_returns, cov_matrix)
-#
-# plot_cumulative_returns(portfolio_cum_returns, index_returns)
-# plot_risk_return_comparison(ticker_returns, mean_returns)
-#
-# compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, invested_amounts_dict, optimal_weights)
-#
-# print("Optimal Weights:", optimal_weights)
-# print(f"Expected Portfolio Return: {portfolio_return:.2f}%")
-# print(f"Portfolio Risk (Std Dev): {portfolio_stddev:.2f}%")
-# print(f"Portfolio Sharpe Ratio: {sharpe_ratio:.2f}")
-
-
 def get_all_tickers():
     tickers_df, _ = load_data()
     all_tickers = tickers_df['Ticker'].unique().tolist()
