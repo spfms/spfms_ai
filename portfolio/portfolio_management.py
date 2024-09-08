@@ -16,7 +16,7 @@ def load_data():
 
 def calculate_returns(tickers_df, index_df, tickers_to_include):
     ticker_prices = tickers_df.pivot(columns='Ticker', values='Adj Close')
-    ticker_prices = ticker_prices[tickers_to_include]  # Filter by tickers in initial weights
+    ticker_prices = ticker_prices[tickers_to_include]
     ticker_returns = ticker_prices.pct_change() * 100
     index_returns = index_df['Value'].pct_change() * 100
     return ticker_returns.dropna(), index_returns.dropna()
@@ -93,12 +93,40 @@ def plot_risk_return_comparison(ticker_returns, mean_returns):
     fig.show()
 
 
+def compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, initial_weights, optimal_weights):
+    # Calculate performance for initial weights
+    initial_return, initial_stddev, initial_sharpe, _ = calculate_portfolio_performance(
+        np.array(list(initial_weights.values())), ticker_returns, mean_returns, cov_matrix)
+
+    # Calculate performance for optimized weights
+    optimized_return, optimized_stddev, optimized_sharpe, _ = calculate_portfolio_performance(
+        optimal_weights, ticker_returns, mean_returns, cov_matrix)
+
+    # Create a comparison table
+    comparison_data = {
+        'Metric': ['Expected Return (%)', 'Risk (Std Dev) (%)', 'Sharpe Ratio'],
+        'Initial Portfolio': [f'{initial_return:.2f}', f'{initial_stddev:.2f}', f'{initial_sharpe:.2f}'],
+        'Optimized Portfolio': [f'{optimized_return:.2f}', f'{optimized_stddev:.2f}', f'{optimized_sharpe:.2f}']
+    }
+
+    comparison_df = pd.DataFrame(comparison_data)
+
+    fig, ax = plt.subplots(figsize=(8, 2))  # Adjust the size to fit the table
+    ax.axis('tight')
+    ax.axis('off')
+    table = ax.table(cellText=comparison_df.values, colLabels=comparison_df.columns, cellLoc='center', loc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    table.scale(1.5, 1.5)
+    plt.title("Comparison of Initial and Optimized Portfolio Performance")
+    plt.show()
+
+
 tickers_df, index_df = load_data()
 
 initial_weights_dict = {
-    'کماسه1': 0.3,
-    'امید1': 0.2,
-    'شتران1': 0.3,
+    'کماسه1': 0.7,
+    'شتران1': 0.1,
     'ولغدر1': 0.2
 }
 
@@ -112,6 +140,8 @@ portfolio_return, portfolio_stddev, sharpe_ratio, portfolio_cum_returns = calcul
 
 plot_cumulative_returns(portfolio_cum_returns, index_returns)
 plot_risk_return_comparison(ticker_returns, mean_returns)
+
+compare_initial_optimized_portfolios(ticker_returns, mean_returns, cov_matrix, initial_weights_dict, optimal_weights)
 
 print("Optimal Weights:", optimal_weights)
 print(f"Expected Portfolio Return: {portfolio_return:.2f}%")
